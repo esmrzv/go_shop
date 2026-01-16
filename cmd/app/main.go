@@ -10,9 +10,16 @@ import (
 
 	"github.com/esmrzv/go_shop/internal/config"
 	"github.com/esmrzv/go_shop/internal/db"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Ошибка загрузки .env: %v", err)
+	}
+
 	cfg := config.Load()
 
 	database, err := db.NewPostgres(db.Config{
