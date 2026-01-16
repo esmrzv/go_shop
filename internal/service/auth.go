@@ -7,6 +7,7 @@ import (
 
 	"github.com/esmrzv/go_shop/internal/repository"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/esmrzv/go_shop/internal/auth"
 )
 type AuthService struct {
 	repo repository.UserRepository
