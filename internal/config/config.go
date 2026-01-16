@@ -3,7 +3,7 @@ import "os"
 
 
 type Config struct {
-	Appport string
+	AppPort string
 
 	DB struct {
 		Host     string
@@ -19,23 +19,14 @@ type Config struct {
 
 
 func Load() Config {
-	return Config{
-		Appport: os.Getenv("APP_PORT"),
-		JWTSecret: os.Getenv("JWT_SECRET"),
-		DB: struct {
-			Host     string
-			Port     string
-			User     string
-			Password string
-			Name     string
-			SSLMode  string
-		}{
-			Host:     os.Getenv("DB_HOST"),
-			Port:     os.Getenv("DB_PORT"),
-			User:     os.Getenv("DB_USER"),	
-			Password: os.Getenv("DB_PASSWORD"),
-			Name:     os.Getenv("DB_NAME"),
-			SSLMode:  os.Getenv("DB_SSLMODE"),
-		},
-	}
+	var cfg Config
+	cfg.AppPort = os.Getenv("APP_PORT")
+	cfg.JWTSecret = os.Getenv("JWT_SECRET")
+	cfg.DB.Host = os.Getenv("PG_HOST")
+	cfg.DB.Port = os.Getenv("PG_PORT")
+	cfg.DB.User = os.Getenv("PG_USER")
+	cfg.DB.Password = os.Getenv("PG_PASSWORD")
+	cfg.DB.Name = os.Getenv("PG_DB")
+	cfg.DB.SSLMode = os.Getenv("PG_SSL")
+	return cfg
 }
