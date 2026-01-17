@@ -10,6 +10,9 @@ import (
 
 	"github.com/esmrzv/go_shop/internal/config"
 	"github.com/esmrzv/go_shop/internal/db"
+	"github.com/esmrzv/go_shop/internal/http/handler"
+	"github.com/esmrzv/go_shop/internal/repository"
+	"github.com/esmrzv/go_shop/internal/service"
 	"github.com/joho/godotenv"
 )
 
@@ -37,9 +40,18 @@ func main() {
 
 	defer database.Close()
 
+	userRepo := repository.NewUserPostgres(database)
+	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
+	authHandler := handler.NewAuthHandler(authService)
+
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/register", authHandler.Register)
+	mux.HandleFunc("/login", authHandler.Login)
+
 	srv := &http.Server{
 		Addr:    ":" + cfg.AppPort,
-		Handler: http.DefaultServeMux,
+		Handler: mux,
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
@@ -62,5 +74,9 @@ func main() {
 		log.Fatalf("server forced to shutdown: %v", err)
 	}
 	log.Println("http server shotdown seccessfully")
+
+
+	
+
 
 }
