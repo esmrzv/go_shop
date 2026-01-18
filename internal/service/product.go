@@ -7,21 +7,24 @@ import (
 	"github.com/esmrzv/go_shop/internal/repository"
 )
 
-type ProductService struct {
+type ProductService interface {
+	Create(ctx context.Context, name string, price float64) error
+	List(ctx context.Context) ([]model.Product, error)
+}
+
+type productService struct {
 	repo repository.ProductRepository
 }
 
-func NewProductService(r repository.ProductRepository) *ProductService{
-	return &ProductService{
+func NewProductService(r repository.ProductRepository) ProductService {
+	return &productService{
 		repo: r,
 	}
 }
-
-func (s *ProductService) Create(ctx context.Context, name string, price float64) error{
+func (s *productService) Create(ctx context.Context, name string, price float64) error {
 	return s.repo.Create(ctx, name, price)
 }
 
-
-func (s *ProductService) List(ctx context.Context) ([]model.Product, error){
+func (s *productService) List(ctx context.Context) ([]model.Product, error) {
 	return s.repo.List(ctx)
 }

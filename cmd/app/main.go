@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/esmrzv/go_shop/internal/auth"
 	"github.com/esmrzv/go_shop/internal/config"
 	"github.com/esmrzv/go_shop/internal/db"
 	"github.com/esmrzv/go_shop/internal/http/handler"
@@ -43,12 +44,17 @@ func main() {
 	userRepo := repository.NewUserPostgres(database)
 	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
 	authHandler := handler.NewAuthHandler(authService)
-
+	productRepo := repository.NewProductPostgres(database)
+	productService := service.NewProductService(productRepo)
+	productHandler := handler.NewProductHandler(productService)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/register", authHandler.Register)
 	mux.HandleFunc("/login", authHandler.Login)
-
+	mux.Handle("/products", auth.JWTMiddleware(cfg.JWTSecret, http.HandlerFunc(productHandler.Create)))
+	mux.Handle("/products/list", auth.JWTMiddleware(cfg.JWTSecret,
+		http.HandlerFunc(productHandler.List),
+	))
 	srv := &http.Server{
 		Addr:    ":" + cfg.AppPort,
 		Handler: mux,
@@ -67,16 +73,12 @@ func main() {
 	<-ctx.Done()
 	log.Println("shutting down server...")
 
-	shutdonwCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdonwCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(shutdonwCtx); err != nil {
 		log.Fatalf("server forced to shutdown: %v", err)
 	}
 	log.Println("http server shotdown seccessfully")
-
-
-	
-
 
 }
