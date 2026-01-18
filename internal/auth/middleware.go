@@ -10,7 +10,7 @@ import (
 
 type ctxKey string
 
-const userContextKey ctxKey = "userID"
+const UserContextKey ctxKey = "userID"
 
 func JWTMiddleware(secret string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +35,7 @@ func JWTMiddleware(secret string, next http.Handler) http.Handler {
 		claims := token.Claims.(jwt.MapClaims)
 		userId := int(claims["user_id"].(float64))
 
-		ctx := context.WithValue(r.Context(), userContextKey, userId)
+		ctx := context.WithValue(r.Context(), UserContextKey, userId)
 		next.ServeHTTP(w, r.WithContext(ctx))
 
 	})
