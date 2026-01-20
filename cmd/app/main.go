@@ -8,13 +8,14 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/esmrzv/go_shop/internal/auth"
+	
 	"github.com/esmrzv/go_shop/internal/config"
 	"github.com/esmrzv/go_shop/internal/db"
 	"github.com/esmrzv/go_shop/internal/http/handler"
 	"github.com/esmrzv/go_shop/internal/repository"
 	"github.com/esmrzv/go_shop/internal/service"
 	"github.com/joho/godotenv"
+	"github.com/esmrzv/go_shop/internal/http/routers"
 )
 
 func main() {
@@ -42,19 +43,24 @@ func main() {
 	defer database.Close()
 
 	userRepo := repository.NewUserPostgres(database)
-	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
-	authHandler := handler.NewAuthHandler(authService)
 	productRepo := repository.NewProductPostgres(database)
+	categoryRepo := repository.NewCategoryRepo(database)
+
+	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
 	productService := service.NewProductService(productRepo)
+	categoryService := service.NewCategoryService(categoryRepo)
+
+	authHandler := handler.NewAuthHandler(authService)
 	productHandler := handler.NewProductHandler(productService)
+	categoryHandler := handler.NewCategoryHandler(categoryService)
+
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/register", authHandler.Register)
-	mux.HandleFunc("/login", authHandler.Login)
-	mux.Handle("/products", auth.JWTMiddleware(cfg.JWTSecret, http.HandlerFunc(productHandler.Create)))
-	mux.Handle("/products/list", auth.JWTMiddleware(cfg.JWTSecret,
-		http.HandlerFunc(productHandler.List),
-	))
+
+	routers.RegisterAuthRouter(mux, authHandler)
+	routers.RegisterCategoryRouter(mux, categoryHandler, cfg.JWTSecret)
+	routers.RegisterProductRouter(mux, productHandler, cfg.JWTSecret)
+	
 	srv := &http.Server{
 		Addr:    ":" + cfg.AppPort,
 		Handler: mux,

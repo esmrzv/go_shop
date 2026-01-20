@@ -16,7 +16,7 @@ func NewProductPostgres(db *sql.DB) ProductRepository {
 	return &productPostgres{db: db}
 }
 
-func (p *productPostgres) Create(ctx context.Context, name string, price float64) error {
+func (p *productPostgres) Create(ctx context.Context, name string, price float64, category_id *int) error {
 	var dbName string
 	err := p.db.QueryRow("SELECT current_database()").Scan(&dbName)
 	if err != nil {
@@ -25,13 +25,13 @@ func (p *productPostgres) Create(ctx context.Context, name string, price float64
 		log.Println("CONNECTED DB:", dbName)
 	}
 	query := `
-		INSERT INTO products (name, price)
-		VALUES ($1, $2)
+		INSERT INTO products (name, price, category_id)
+		VALUES ($1, $2, $3)
 		RETURNING id
 	`
 
 	var id int
-	if err := p.db.QueryRowContext(ctx, query, name, price).Scan(&id); err != nil {
+	if err := p.db.QueryRowContext(ctx, query, name, price, category_id).Scan(&id); err != nil {
 		return err
 	}
 
@@ -45,7 +45,7 @@ func (p *productPostgres) List(ctx context.Context) ([]model.Product, error) {
 	_ = p.db.QueryRow("SELECT current_database()").Scan(&dbName)
 	log.Println("CONNECTED DB:", dbName)
 
-	query := `SELECT id, name, price, created_at FROM products`
+	query := `SELECT id, name, price, category_id, created_at FROM products`
 
 	rows, err := p.db.QueryContext(ctx, query)
 	if err != nil {
@@ -61,7 +61,9 @@ func (p *productPostgres) List(ctx context.Context) ([]model.Product, error) {
 			&product.ID,
 			&product.Name,
 			&product.Price,
+			&product.Category_id,
 			&product.CreatedAt,
+			
 		); err != nil {
 			return nil, err
 		}

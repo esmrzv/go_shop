@@ -8,7 +8,7 @@ import (
 )
 
 type ProductService interface {
-	Create(ctx context.Context, name string, price float64) error
+	Create(ctx context.Context, name string, price float64, category_id *int) error
 	List(ctx context.Context) ([]model.Product, error)
 }
 
@@ -17,12 +17,11 @@ type productService struct {
 }
 
 func NewProductService(r repository.ProductRepository) ProductService {
-	return &productService{
-		repo: r,
-	}
+	return &productService{repo: r}
 }
-func (s *productService) Create(ctx context.Context, name string, price float64) error {
-	return s.repo.Create(ctx, name, price)
+
+func (s *productService) Create(ctx context.Context, name string, price float64, category_id *int) error {
+	return s.repo.Create(ctx, name, price, category_id)
 }
 
 func (s *productService) List(ctx context.Context) ([]model.Product, error) {

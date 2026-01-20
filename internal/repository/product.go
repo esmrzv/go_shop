@@ -7,6 +7,6 @@ import (
 )
 
 type ProductRepository interface {
-	Create(ctx context.Context, name string, price float64) error
+	Create(ctx context.Context, name string, price float64, category_id *int) error
 	List(ctx context.Context)([]model.Product, error)
 }

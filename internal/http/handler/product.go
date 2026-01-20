@@ -25,10 +25,11 @@ func (h *ProductHandler) Create(w http.ResponseWriter, r *http.Request){
 	var req struct{
 		Name string `json:"name"`
 		Price float64 `json:"price"`
+		CategoryId *int `json:"category_id,omitempty"`
 	}
 	json.NewDecoder(r.Body).Decode(&req)
 
-	if err := h.service.Create(r.Context(), req.Name, req.Price); err != nil{
+	if err := h.service.Create(r.Context(), req.Name, req.Price, req.CategoryId); err != nil{
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
