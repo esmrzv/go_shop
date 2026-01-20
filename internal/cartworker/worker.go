@@ -48,3 +48,12 @@ func (w *Worker) Run() {
 		}
 	}
 }
+
+
+func (w *Worker) Add(cmd AddItemCommand) {
+	w.addCh <- cmd
+}
+
+func (w *Worker) Get(cmd GetCartCommand) {
+	w.getCh <- cmd
+}
