@@ -7,20 +7,20 @@ import (
 	"github.com/esmrzv/go_shop/internal/model"
 )
 
-type CartService struct {
+type CartServiceMutex struct {
 	mu sync.Mutex
 	carts map[int]*model.Cart
 }
 
 
-func NewCartService() *CartService {
-	return &CartService{
+func NewCartService() *CartServiceMutex {
+	return &CartServiceMutex{
 		carts: make(map[int]*model.Cart, 0),
 	}
 }
 
 
-func (s *CartService) AddItem(ctx context.Context, user_id, product_id int) {
+func (s *CartServiceMutex) AddItem(ctx context.Context, user_id, product_id int) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	cart, ok := s.carts[user_id]
@@ -45,7 +45,7 @@ func (s *CartService) AddItem(ctx context.Context, user_id, product_id int) {
 }
 
 
-func (s *CartService) GetCart(ctx context.Context, user_id int) *model.Cart {
+func (s *CartServiceMutex) GetCart(ctx context.Context, user_id int) *model.Cart {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.carts[user_id]

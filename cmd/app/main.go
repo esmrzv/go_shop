@@ -8,14 +8,14 @@ import (
 	"os/signal"
 	"time"
 
-	
+	"github.com/esmrzv/go_shop/internal/cartworker"
 	"github.com/esmrzv/go_shop/internal/config"
 	"github.com/esmrzv/go_shop/internal/db"
 	"github.com/esmrzv/go_shop/internal/http/handler"
+	"github.com/esmrzv/go_shop/internal/http/routers"
 	"github.com/esmrzv/go_shop/internal/repository"
 	"github.com/esmrzv/go_shop/internal/service"
 	"github.com/joho/godotenv"
-	"github.com/esmrzv/go_shop/internal/http/routers"
 )
 
 func main() {
@@ -54,13 +54,19 @@ func main() {
 	productHandler := handler.NewProductHandler(productService)
 	categoryHandler := handler.NewCategoryHandler(categoryService)
 
+	cartWorker := cartworker.NewWorker()
+	go cartWorker.Run()
+
+	cartService := service.NewAsyncCartService(cartWorker)
+	cartHandler := handler.NewCartHandler(cartService)
 
 	mux := http.NewServeMux()
 
 	routers.RegisterAuthRouter(mux, authHandler)
 	routers.RegisterCategoryRouter(mux, categoryHandler, cfg.JWTSecret)
 	routers.RegisterProductRouter(mux, productHandler, cfg.JWTSecret)
-	
+	routers.RegisterCartRouter(mux, cartHandler, cfg.JWTSecret)
+
 	srv := &http.Server{
 		Addr:    ":" + cfg.AppPort,
 		Handler: mux,
