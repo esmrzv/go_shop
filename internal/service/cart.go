@@ -20,7 +20,7 @@ func NewCartService() *CartServiceMutex {
 }
 
 
-func (s *CartServiceMutex) AddItem(ctx context.Context, user_id, product_id int) {
+func (s *CartServiceMutex) AddItem(ctx context.Context, user_id, product_id int){
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	cart, ok := s.carts[user_id]

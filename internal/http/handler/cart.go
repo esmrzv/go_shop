@@ -22,18 +22,20 @@ func (h *CartHandler) Add(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("user_id").(int)
 	productID, _ := strconv.Atoi(r.URL.Query().Get("product_id"))
 
-	h.service.AddItem(userID, productID)
+	if err := h.service.AddItem(r.Context(), userID, productID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
 
 func (h *CartHandler) Get(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value("user_id").(int)
-	cart := h.service.GetCart(userID)
-	if cart == nil {
-		http.Error(w, "cart not found", http.StatusNotFound)
+	cart, err := h.service.GetCart(r.Context(), userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 	_ = json.NewEncoder(w).Encode(cart)
-
 }

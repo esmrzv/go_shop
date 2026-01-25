@@ -1,12 +1,13 @@
 package cartworker
 
+import "github.com/esmrzv/go_shop/internal/model"
+
 type AddItemCommand struct {
-	UserID int
+	UserID    int
 	ProductID int
 }
 
 type GetCartCommand struct {
 	UserID int
-	Reply chan any
+	Reply  chan *model.Cart
 }
-

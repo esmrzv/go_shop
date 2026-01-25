@@ -13,6 +13,7 @@ import (
 	"github.com/esmrzv/go_shop/internal/db"
 	"github.com/esmrzv/go_shop/internal/http/handler"
 	"github.com/esmrzv/go_shop/internal/http/routers"
+	"github.com/esmrzv/go_shop/internal/orderworker"
 	"github.com/esmrzv/go_shop/internal/repository"
 	"github.com/esmrzv/go_shop/internal/service"
 	"github.com/joho/godotenv"
@@ -42,6 +43,9 @@ func main() {
 
 	defer database.Close()
 
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
 	userRepo := repository.NewUserPostgres(database)
 	productRepo := repository.NewProductPostgres(database)
 	categoryRepo := repository.NewCategoryRepo(database)
@@ -56,6 +60,13 @@ func main() {
 
 	cartWorker := cartworker.NewWorker()
 	go cartWorker.Run()
+
+
+	orderWorker := orderworker.NewWorker(100)
+	orderService := service.NewOrderService(database, cartWorker, orderWorker)
+	//ctx, stop := context.WithCancel(context.Background())
+	//defer stop()
+	go orderWorker.Run(ctx, 5, orderService.Process)
 
 	cartService := service.NewAsyncCartService(cartWorker)
 	cartHandler := handler.NewCartHandler(cartService)
@@ -72,7 +83,6 @@ func main() {
 		Handler: mux,
 	}
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
 	go func() {
